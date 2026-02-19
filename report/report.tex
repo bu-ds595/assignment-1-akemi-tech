@@ -45,6 +45,8 @@ Technical description of your algorithm. Include pseudocode if helpful.
 
 We propose an adaptive Metropolis-Adjusted Langevin Algorithm (MALA) sampler. Given a target density $p(\theta)$, MALA constructs proposals using a discretization of Langevin dynamics:
 
+
+
 \begin{equation}
 \theta' = \theta + \tfrac{1}{2}\epsilon^2 \nabla \log p(\theta) + \epsilon z, \quad z \sim \mathcal{N}(0, I),
 \end{equation}
@@ -80,8 +82,43 @@ To prevent the model from being stuck, a small noise was being added. The noise 
 
 Results on both benchmarks. Include visualizations (samples, traces) and quantitative diagnostics (ESS, acceptance rates). Compare to vanilla MH and HMC baselines.
 
-In the project, some experiments were done in order to improve the performance of the MALA when sampling the Neal’s tunnel. To fit the model, the first thing needed to be done was to get an ideal step size. When testing the distribution in HMC, a few steps was put in a for loop as candidates, from 0.01 to 0.28, and after screening by a built in function that selects the most ideal step size, the 0.15 step size was selected for the HMC sampler, therefore 0.15 was used as a strong candidate for the first round of test for MALA. The result of step size 0.15 was not the most solid step size  in the MALA sampler for the first several rounds of testing, before adding temperature, and after testing, 2.0 was selected as the initial step size. After seeing the result, I noticed that the left tail of the Neal’s tunnel was not well sampled. To solve the problem a decision of adding temperature was made. The first round of testing was to test if the temperature should be bigger than one or smaller than one. After a few rounds of playing with the hyper parameter Temperature, a Temperature slightly smaller than one seems to be ideal at filling the gap on the left tail of the distribution. After playing with the temperature, i noticed that the temperature caused the spread on the right side less spread as before. To better sample the right wing, I try to set the accept rate more than 0.6(which was set before) to urge the model to take bolder steps so that it can be more spread to the right. After setting the acceptance higher the left tails became less well sampled than before. To adjust it I went back to the step sizes and set them lower. After a few mix and match, the sampler seems to do better than the beginning, and it's well balanced in the asymmetrical distribution. Looking at the Arviz analysis, the trace plot for MALA is not steady as HMC for both benchmarks. This suggests that the model is still stuck at a certain area, and might need further improvement, and the autocorrelation for the MALA model was still high. To solve this I first doubled the sample sizes, so that there is more room for the and adaptive steps to adjust the step size, and to reduce the autocorrelation, I went back reducing the accept rate, and finally set it to 0.4, this change will help reducing the autocorrelation. Then I increased the initial step size for the same purpose. The final autocorrelation was then lowered. 
+In the project, some experiments were done in order to improve the performance of the MALA when sampling the Neal’s tunnel. To fit the model, the first thing needed to be done was to get an ideal step size. When testing the distribution in HMC, a few steps was put in a for loop as candidates, from 0.01 to 0.28, and after screening by a built in function that selects the most ideal step size, the 0.15 step size was selected for the HMC sampler, therefore 0.15 was used as a strong candidate for the first round of test for MALA. The result of step size 0.15 was not the most solid step size  in the MALA sampler for the first several rounds of testing, before adding temperature, and after testing, 2.0 was selected as the initial step size. After seeing the result, I noticed that the left tail of the Neal’s tunnel was not well sampled. To solve the problem a decision of adding temperature was made. The first round of testing was to test if the temperature should be bigger than one or smaller than one. After a few rounds of playing with the hyper parameter Temperature, a Temperature slightly smaller than one seems to be ideal at filling the gap on the left tail of the distribution. After playing with the temperature, i noticed that the temperature caused the spread on the right side less spread as before. To better sample the right wing, I try to set the accept rate more than 0.6(which was set before) to urge the model to take bolder steps so that it can be more spread to the right. After setting the acceptance higher the left tails became less well sampled than before. To adjust it I went back to the step sizes and set them lower. After a few mix and match, the sampler seems to do better than the beginning, and it's well balanced in the asymmetrical distribution. Looking at the Arviz analysis, the trace plot for MALA is not steady as HMC for both benchmarks. This suggests that the model is still stuck at a certain area, and might need further improvement, and the autocorrelation for the MALA model was still high. To solve this I first doubled the sample sizes, so that there is more room for the and adaptive steps to adjust the step size, and to reduce the autocorrelation, I went back reducing the accept rate, and finally set it to 0.4, this change will help reducing the autocorrelation. Then I increased the initial step size for the same purpose. The final autocorrelation was then lowered. Comparing the MALA model in the two distributions, it did not do a very good job on the banana distributions, it got stuck a lot, and the trace drifted a lot too. The autocorrelation was high, which indicated not very good sampling in that distribution. 
 
+\subsection{Rosenbrock}
+
+Figure~\ref{fig:rosenbrock-scatter} shows samples from RWMH and the proposed method overlaid on the Rosenbrock density contours. Figure~\ref{fig:rosenbrock-trace} shows the trace plots and autocorrelation for the proposed method.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{rosenbrock_scatter.png}
+\caption{Sample comparison on the Rosenbrock distribution: RWMH vs Adaptive MALA.}
+\label{fig:rosenbrock-scatter}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{rosenbrock_trace_autocorr.png}
+\caption{Trace plots and autocorrelation for Adaptive MALA on Rosenbrock.}
+\label{fig:rosenbrock-trace}
+\end{figure}
+
+\subsection{Neal's Funnel}
+
+Figure~\ref{fig:funnel-scatter} compares samples from RWMH and the proposed method on Neal's Funnel. Figure~\ref{fig:funnel-trace} shows trace plots and autocorrelation, illustrating exploration of both the neck and the wide region of the funnel.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{funnel_scatter.png}
+\caption{Sample comparison on Neal's Funnel: RWMH vs Adaptive MALA.}
+\label{fig:funnel-scatter}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{funnel_trace_autocorr.png}
+\caption{Trace plots and autocorrelation for Adaptive MALA on Neal's Funnel.}
+\label{fig:funnel-trace}
+\end{figure}
 
 % Tip: Use \includegraphics to add figures from your notebook
 
